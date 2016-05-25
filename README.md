@@ -1,10 +1,9 @@
-Title:    ProVerif proofs for Smart-Guard
-Author:   Michael Denzel, Alessandro Bruni, Mark Ryan
+
+# ProVerif Proofs for Smart-Guard
+
+Authors:  Michael Denzel, Alessandro Bruni, Mark Ryan  
 Date:     2016-05-25
 
-# Smart-Guard
-
-README file to explain how to run the ProVerif proofs of Smart-Guard.
 
 ## Quick Start
 
