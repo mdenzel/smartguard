@@ -1,0 +1,313 @@
+(*
+#if FALSE
+
+  @title:    Smart-Guard: Phase 1 and 2
+  @authors:  Michael Denzel <research@michael-denzel.de>, Alessandro Bruni
+  @date:     2015-09-24
+  @license:  GNU General Public License 2.0 or later
+
+  Warning: this is a raw file to generate ProVerif proofs.
+  It includes C-macros and is not intended to be run directly.
+  Please use the appended shellscript to generate the code.
+
+  PROTOCOL: Phase 1 and 2 with trusted output and/or keylogger optional
+  (variable TRUSTEDOUTPUT and KEYLOGGER)
+
+#else
+  GENERATED FILE
+
+  @title:    Smart-Guard: Phase 1 and 2
+  @authors:  Michael Denzel <research@michael-denzel.de>, Alessandro Bruni
+  @date:     __DATE__
+  @license:  GNU General Public License 2.0 or later
+
+#if (TRUSTEDOUTPUT)
+  Trusted output active.
+#endif
+#if (KEYLOGGER)
+  Keylogger active.
+#endif
+
+#endif
+*)
+
+(* ###################### CONFIG SECTION ###################### *)
+set reconstructTrace = false. (* REMARK: traces sometimes cannot be created;
+                                         rather use proof output *)
+(*set verboseRules = true.*) (* print every single rule *)
+(*set explainDerivation = false.*)
+(* ############################################################ *)
+
+(* defines *)
+type char.
+type skey.
+type pkey.
+type key. (* symmetric key *)
+type sig.
+
+(* #################### XXX: trust model #################### *)
+(* "USB" channels to and from the PC *)
+(* if keyboard or PC compromised *)
+#if (KB_COMPR || PC_COMPR || KEYLOGGER)
+    free ch_kb_pc:  channel . (*pc/kb compromised?*)
+    free ch_pc_kb:  channel . (*pc/kb compromised?*)
+#else
+    free ch_kb_pc:  channel [private]. (*pc/kb compromised?*)
+    free ch_pc_kb:  channel [private]. (*pc/kb compromised?*)
+#endif
+(* if smart-card or PC compromised *)
+#if (SC_COMPR || PC_COMPR || KEYLOGGER)
+    free ch_sc_pc:  channel . (*pc/sc compromised?*)
+    free ch_pc_sc:  channel . (*pc/sc compromised?*)
+#else
+    free ch_sc_pc:  channel [private]. (*pc/sc compromised?*)
+    free ch_pc_sc:  channel [private]. (*pc/sc compromised?*)
+#endif
+(* channels to the outside world *)
+(* if PC compromised *)
+#if (PC_COMPR || KEYLOGGER)
+    free ch_att:    channel . (*pc compromised?*)
+    free ch_u_pc:   channel . (*mouse channel*)
+#else
+    free ch_att:    channel [private]. (*pc compromised?*)
+    free ch_u_pc:   channel [private]. (*mouse channel*)
+#endif
+#if (PC_COMPR)
+    free ch_pc_u:   channel . (*screen channel*)
+
+#else
+    free ch_pc_u:   channel [private]. (*screen channel*)
+#endif
+(* Keys represent devices *)
+(* if keyboard or smart-card compromised *)
+#if (KB_COMPR || SC_COMPR)
+    free k: key            . (*shared key between keyboard and smart-card *)
+#else
+    free k: key            [private]. (*shared key between keyboard and smart-card *)
+#endif
+(* if keyboard compromised *)
+#if (KB_COMPR)
+    free ch_u_kb:  channel .
+#else
+    free ch_u_kb:  channel [private].
+#endif
+(* if smart-card compromised *)
+#if (SC_COMPR)
+    free hk: key           .
+    free ch_sc_u:  channel . (*trusted output*)
+#else
+    free hk: key           [private].
+    free ch_sc_u:  channel [private]. (*trusted output*)
+#endif
+(* ############################################################ *)
+
+
+(* test variables to check if end of protocol etc. is reached *)
+free success: bitstring [private].
+free ch_pub: channel. (* public channel *)
+
+(* Symmetric encryption *)
+fun senc(key, bitstring): bitstring.
+reduc forall kx:key, m:bitstring; sdec(kx, senc(kx, m)) = m.
+
+(* Asymmetric encryption *)
+fun pk(skey): pkey.
+fun aenc(pkey, bitstring): bitstring.
+reduc forall kx:skey, m:bitstring; adec(kx, aenc(pk(kx), m)) = m.
+
+(* hash *)
+fun mac(key, bitstring): bitstring.
+
+(* signatures *)
+fun sign(skey, bitstring): sig.
+reduc forall kx:skey, m:bitstring; check(pk(kx),m,sign(kx,m)) = m.
+
+(* Type cast *)
+fun k2b(key): bitstring.
+reduc forall kx:key; b2k(k2b(kx)) = kx.
+fun c2b(char): bitstring.
+reduc forall cx:char; b2c(c2b(cx)) = cx.
+
+(* Second attacker *)
+let att_proc = (
+  (* the attacker can apply all functions on data in ch_att *)
+  (in(ch_att, x:skey); in(ch_att, y:bitstring); out(ch_att, sign(x, y))) |
+  (in(ch_att, x:skey); out(ch_att, pk(x))) |
+  (in(ch_att, k:key); in(ch_att, m:bitstring); out(ch_att, sdec(k, m))) |
+  (in(ch_att, k:skey); in(ch_att, m:bitstring); out(ch_att, adec(k, m))) |
+  (in(ch_att, x:bitstring); out(ch_att, b2k(x))) |
+  (in(ch_att, x:bitstring); out(ch_att, b2c(x))) |
+  (* the attacker can construct tuples *)
+  (in(ch_att, x:bitstring); in(ch_att, y: bitstring); out(ch_att, (x, y))) |
+  (in(ch_att, x:bitstring); in(ch_att, y: bitstring); in(ch_att, z:bitstring);
+     out(ch_att, (x, y, z))) |
+  (* the attacker can destruct tuples *)
+  (in(ch_att, (x:bitstring, y: bitstring)); out(ch_att, x)) |
+  (in(ch_att, (x:bitstring, y: bitstring)); out(ch_att, y)) |
+  (in(ch_att, (x:bitstring, y: bitstring, z:bitstring)); out(ch_att, x)) |
+  (in(ch_att, (x:bitstring, y: bitstring, z:bitstring)); out(ch_att, y)) |
+  (in(ch_att, (x:bitstring, y: bitstring, z:bitstring)); out(ch_att, z)) |
+  (* the attacker can create names *)
+  (new att_n:bitstring; out(ch_att, att_n)) |
+  (new att_n:char; out(ch_att, att_n)) |
+  (new att_n:skey; out(ch_att, att_n)) |
+  (new att_n:pkey; out(ch_att, att_n)) |
+  (new att_n:key; out(ch_att, att_n)) |
+  (new att_n:sig; out(ch_att, att_n))
+
+#if (KB_COMPR || SC_COMPR)
+  (* the attacker knows the keys of the controlled device.
+     however, he/she does not (initially) know the shared key as this
+     is created by the user *)
+#endif
+#if (SC_COMPR)
+  (* smart-card compromised? *)
+   | (out(ch_att, hk))
+#endif
+).
+
+(* events to define control flows *)
+event user_begin(char).
+event user_pass(char).
+event sc_pass(char).
+event kb_pass(char).
+event pc_pass(char).
+
+(* #################### XXX: QUERIES #################### *)
+(* protocol runs through *)
+(* "not attacker(success)" should be false/cannot be proved! *)
+query mess(ch_pub, success).
+
+(* integrity *)
+query m:char;
+      (event (sc_pass(m)) ==> event (user_pass(m))).
+#ifndef TRUSTEDOUTPUT
+query m:char;
+      (event (pc_pass(m)) ==> event (user_pass(m))).
+#endif
+(* all the keyboard needs to know, is that the characters
+   are originally from the user. If anything else goes
+   wrong, the user will not initialise phase 2 and abort
+   => this is trivial and only broken if kb is malicious*)
+query m:char;
+      (event (kb_pass(m)) ==> event (user_begin(m))).
+
+(* confidentiality of message m as pre-condition for protocol 2 *)
+query attacker(new m).
+(* confidentiality of message m (goal for first attacker:
+   send m to second passively listening attacker) => attacker wins*)
+query mess(ch_att, new m).
+(* ###################################################### *)
+
+let kb(k: key) =
+    (* keyboard *)
+    in(ch_u_kb, m: char);
+    event kb_pass(m);
+    let c = senc(k, c2b(m)) in
+    out(ch_kb_pc, c);
+    (* get notification about click event from pc *)
+    phase 1;
+    in(ch_u_kb, chal: bitstring);
+    let c2 = senc(k, chal) in
+    out(ch_kb_pc, c2).
+
+let sc(k: key, hk: key) =
+    (* smart-card *)
+    in(ch_pc_sc, c: bitstring);
+    let m' = b2c(sdec(k, c)) in
+#if (TRUSTEDOUTPUT)
+    (* trusted output *)
+    out(ch_sc_u, m');
+#else
+    out(ch_sc_pc, m');
+#endif
+    phase 1;
+    in(ch_pc_sc, click: char);
+    let chal = mac(hk, c2b(m')) in (* generate challenge *)
+#if (TRUSTEDOUTPUT)
+    (* trusted output *)
+    out(ch_sc_u, (m', chal)); (* flush output *)
+#else
+    out(ch_sc_pc, (m', chal)); (* flush output *)
+#endif
+    in(ch_pc_sc, c2: bitstring);
+#if (TRUSTEDOUTPUT)
+    let (=chal) = sdec(k, c2) in
+#else
+    let cchal = sdec(k, c2) in
+    out(ch_sc_pc, cchal);
+    in(ch_pc_sc, tk: key);
+    let (=chal) = sdec(tk, cchal) in
+#endif
+    event sc_pass(m');
+    out(ch_pub, success).
+
+let pc() =
+    (* computer *)
+    (* forward c *)
+    in(ch_kb_pc, c: bitstring);
+    out(ch_pc_sc, c);
+#ifndef TRUSTEDOUTPUT
+    (* output *)
+    in(ch_sc_pc, m: char);
+    out(ch_pc_u, m);
+#endif
+    (* get click event *)
+    in(ch_u_pc, click: char); (* click event *)
+    phase 1;
+    (* challenge-response to verify that message is really ok *)
+    out(ch_pc_sc, click);
+#ifndef TRUSTEDOUTPUT
+    (* output *)
+    in(ch_sc_pc, (m: char, chal: bitstring));
+    new tk: key;
+    (* addition to the protocol as in the Smart-Guard paper:
+     * The PC encrypts the challenge again and displays it to the user.
+     * This way, the PC can check, if the user really agreed to the
+     * displayed message (which the PC has if there is no trusted output!).
+     *)
+    let cchal = senc(tk, chal) in
+    out(ch_pc_u, (m, cchal));
+#endif
+    in(ch_kb_pc, c2: bitstring);
+#if (TRUSTEDOUTPUT)
+    out(ch_pc_sc, c2).
+#else
+    out(ch_pc_sc, c2);
+    (* addition to the protocol as in the Smart-Guard paper:
+     * PC verifies challenge, too
+     *)
+    in(ch_sc_pc, =cchal);
+    event pc_pass(m);
+    out(ch_pc_sc, tk).
+#endif
+
+let user(k: key) =
+    (* user *)
+    new m: char;
+    new click: char;
+    event user_begin(m);
+    out(ch_u_kb, m);
+#if (TRUSTEDOUTPUT)
+    (* trusted output *)
+    in(ch_sc_u, =m);
+#else
+    in(ch_pc_u, =m);
+#endif
+    (* generate click event *)
+    out(ch_u_pc, click); (* click event *)
+    phase 1;
+#if (TRUSTEDOUTPUT)
+    (* trusted output *)
+    in(ch_sc_u, (=m, chal: bitstring)); (* check screen again and receive challenge *)
+#else
+    in(ch_pc_u, (=m, chal: bitstring)); (* check screen again and receive challenge *)
+#endif
+    event user_pass(m);
+    out(ch_u_kb, chal).
+
+
+process
+   (* start keyboard, smart-card, pc, and recipient *)
+   user(k) | !kb(k) | sc(k, hk)
+   | !pc() | !att_proc
