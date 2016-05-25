@@ -1,6 +1,7 @@
 
 # ProVerif Proofs for Smart-Guard
 
+Paper:    Smart-Guard: Defending User Input from Malware  
 Authors:  Michael Denzel, Alessandro Bruni, Mark Ryan  
 Date:     2016-05-25
 
