@@ -26,44 +26,44 @@ function pv_print(){
     #check confidentiality
     substring="RESULT not attacker(_p[0-9]*)*\(m_[0-9]*\[\]\) is true."
     if [[ $1 =~ $substring ]]; then
-        echo -en "   conf.    "
+        printf "   conf.    "
     else
-        echo -en "    NO      "
+        printf "    NO      "
     fi
 
     #check strong confidentiality
     substring="RESULT not mess(_p[0-9]*)*\(ch_att\[\],m_[0-9]*\[\]\) is true."
     if [[ $1 =~ $substring ]]; then
-        echo -en "  conf.     "
+        printf "  conf.     "
     else
-        echo -en "   NO       "
+        printf "   NO       "
     fi
 
 	#check integrity for pc (if NO trusted output is available, otherwise it makes no sense)
     if [ $trustedoutput -eq 0 ]; then
 	    substring="RESULT event\(pc_pass\(m_[0-9]*\)\) ==> event\(user_pass\(m_[0-9]*\)\) is true."
         if [[ $1 =~ $substring ]]; then
-            echo -en "int.      "
+            printf "int.      "
         else
-            echo -en " NO       "
+            printf " NO       "
         fi
     fi
 
     #check integrity for smart-card
     substring="RESULT event\(sc_pass\(m_[0-9]*\)\) ==> event\(user_pass\(m_[0-9]*\)\) is true."
     if [[ $1 =~ $substring ]]; then
-        echo -en "int.      "
+        printf "int.      "
     else
-        echo -en " NO       "
+        printf " NO       "
 
     fi
 
     #check integrity for keyboard
     substring="RESULT event\(kb_pass\(m_[0-9]*\)\) ==> event\(user_begin\(m_[0-9]*\)\) is true."
     if [[ $1 =~ $substring ]]; then
-        echo -en "int.      "
+        printf "int.      "
     else
-        echo -en " NO       "
+        printf " NO       "
     fi
 
     #check for success

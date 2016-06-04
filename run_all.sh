@@ -56,27 +56,27 @@ cd ./phase_1_2
 #without trusted output
 if [ $WIHTOUT_TRUSTED_OUTPUT -eq 1 ]; then
     #without keylogger
-    echo -e "\n--- PHASE 1 and 2 ---"
+    printf "\n--- PHASE 1 and 2 ---\n"
     sh ./run.sh ./proofs-smart-guard-phase12.gen
 
     #keylogger
     if [ $KEYLOGGER -eq 1 ]; then
-        echo -e "\n--- PHASE 1 and 2 (keylogger) ---"
+        printf "\n--- PHASE 1 and 2 (keylogger) ---\n"
         sh ./run.sh ./proofs-smart-guard-phase12.gen-DKEYLOGGER
     fi
-    echo -e "\n\n======================================\n"
+    printf "\n\n======================================\n\n"
 fi
 
 #without keylogger
-echo -e "\n--- PHASE 1 and 2 (trusted output) ---"
+printf "\n--- PHASE 1 and 2 (trusted output) ---\n"
 sh ./run.sh ./proofs-smart-guard-phase12.gen-DTRUSTEDOUTPUT
 
 #keylogger
 if [ $KEYLOGGER -eq 1 ]; then
-    echo -e "\n--- PHASE 1 and 2 (trusted output, keylogger) ---"
+    printf "\n--- PHASE 1 and 2 (trusted output, keylogger) ---\n"
     sh ./run.sh ./proofs-smart-guard-phase12.gen-DTRUSTEDOUTPUT-DKEYLOGGER
 fi
-echo -e "\n\n======================================\n"
+printf "\n\n======================================\n\n"
 
 #go back to main directory
 cd ..
@@ -85,12 +85,12 @@ cd ..
 cd ./phase_3
 
 #without keylogger
-echo -e "\n--- PHASE 3 ---"
+printf "\n--- PHASE 3 ---\n"
 sh ./run.sh ./proofs-smart-guard-phase3.gen
 
 #keylogger
 if [ $KEYLOGGER -eq 1 ]; then
-    echo -e "\n--- PHASE 3 (keylogger) ---"
+    printf "\n--- PHASE 3 (keylogger) ---\n"
     sh ./run.sh ./proofs-smart-guard-phase3.gen-DKEYLOGGER
 fi
 
@@ -100,7 +100,7 @@ cd ..
 # ------------ CLEANUP -----------------
 
 if [ $CLEANUP -eq 1 ]; then
-    echo -en "\nClean up: "
+    printf "\nClean up: "
     rm -r ./phase_1_2/proofs-smart-guard-phase12.gen \
        ./phase_1_2/proofs-smart-guard-phase12.gen-DKEYLOGGER \
        ./phase_1_2/proofs-smart-guard-phase12.gen-DTRUSTEDOUTPUT \

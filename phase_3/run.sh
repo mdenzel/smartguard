@@ -14,17 +14,17 @@ function pv_print(){
     #check confidentiality
     substring="RESULT not mess\(ch_att\[\],m_[0-9]*\[!1 = v_[0-9]*\]\) is true."
     if [[ $1 =~ $substring ]]; then
-        echo -en "   conf.         "
+        printf "   conf.         "
     else
-        echo -en "    NO           "
+        printf "    NO           "
     fi
 
     #check integrity
     substring="RESULT event\(rec_end\(m_[0-9]*\)\) ==> event\(kb_begin\(m_[0-9]*\)\) \|\| event\(sc_begin\(m_[0-9]*\)\) is true."
     if [[ $1 =~ $substring ]]; then
-        echo -en "   int.        "
+        printf "   int.        "
     else
-        echo -en "    NO         "
+        printf "    NO         "
     fi
 
     #check for success
