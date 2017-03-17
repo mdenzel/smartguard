@@ -24,15 +24,15 @@ Keywords:
 kb           = keyboard
 sc           = smart-card
 pc           = the computer of the Smart-Guard user
-conf.        = ProVerif file proofs confidentiality
-strong conf. = ProVerif file proofs strong confidentiality
+conf.        = ProVerif file proves confidentiality
+strong conf. = ProVerif file proves strong confidentiality
                (=offline attacker could not gain access to the message)
-int.         = ProVerif file proofs integrity
+int.         = ProVerif file proves integrity
                (=smart-card begins)
-strong int.  = ProVerif file proofs strong integrity
+strong int.  = ProVerif file proves strong integrity
                (=smart-card begins and accepts encryption)
 success      = proof reaches the end of the protocol
-NO           = ProVerif file does not proof the property
+NO           = ProVerif file does not prove the property
 ```
 
 There is also a self-explanatory CONFIG section in `run_all.sh`.
