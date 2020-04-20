@@ -2,7 +2,7 @@
 
 #
 #  @title:    ProVerif proofs for Smart-Guard
-#  @authors:  Michael Denzel <md.research@mailbox.org>, Alessandro Bruni
+#  @authors:  Michael Denzel, Alessandro Bruni
 #  @date:     2016-05-23
 #  @license:  GNU General Public License 2.0 or later
 #

@@ -2,7 +2,7 @@
 
 #
 #  @title:    Smart-Guard: phase 3
-#  @authors:  Michael Denzel <md.research@mailbox.org>, Alessandro Bruni
+#  @authors:  Michael Denzel, Alessandro Bruni
 #  @date:     2015-06-02
 #  @license:  GNU General Public License 2.0 or later
 #
