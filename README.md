@@ -1,4 +1,6 @@
 
+This repository was archived and is no longer maintained.
+
 # ProVerif Proofs for Smart-Guard
 
 Paper:    Smart-Guard: Defending User Input from Malware  
